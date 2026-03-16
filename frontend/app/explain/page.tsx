@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -10,7 +10,6 @@ function ExplainContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // URL에서 데이터 받기
   const question = searchParams.get("question") || "나는 매일 아침 운동을 ( ) 건강이 많이 좋아졌다.";
   const wrongAnswer = searchParams.get("wrongAnswer") || "하거나";
   const correctAnswer = searchParams.get("correctAnswer") || "하더니";
@@ -36,8 +35,8 @@ function ExplainContent() {
   };
 
   return (
-    <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
-      <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+    <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh" }}>
+      <div className="explain-container" style={{ maxWidth: "700px", margin: "0 auto" }}>
 
         {/* 헤더 */}
         <h1 style={{ fontSize: "24px", fontWeight: "bold", color: "#1F4E79", marginBottom: "8px" }}>Explain AI</h1>
@@ -49,9 +48,13 @@ function ExplainContent() {
           <p style={{ fontSize: "16px", color: "#1A1A2E", lineHeight: 1.6, marginBottom: "16px" }}>
             {question}
           </p>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <span style={{ backgroundColor: "#FFE5E5", color: "#E53E3E", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>내 답: {wrongAnswer}</span>
-            <span style={{ backgroundColor: "#E5F5E5", color: "#2E7D32", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>정답: {correctAnswer}</span>
+          <div className="explain-badges">
+            <span className="explain-badge" style={{ backgroundColor: "#FFE5E5", color: "#E53E3E", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>
+              내 답: {wrongAnswer}
+            </span>
+            <span className="explain-badge" style={{ backgroundColor: "#E5F5E5", color: "#2E7D32", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>
+              정답: {correctAnswer}
+            </span>
           </div>
         </div>
 

@@ -24,3 +24,163 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ================================
+   Navigation 모바일 대응
+================================ */
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: white;
+  font-size: 24px;
+}
+
+.nav-mobile-menu {
+  display: none;
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background-color: #1F4E79;
+  padding: 16px;
+  z-index: 100;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-mobile-menu.open {
+  display: flex;
+}
+
+@media (max-width: 767px) {
+  .nav-links {
+    display: none;
+  }
+  .nav-hamburger {
+    display: block;
+  }
+}
+
+/* ================================
+   랜딩 페이지 모바일 대응
+================================ */
+.hero-title {
+  font-size: 52px;
+}
+
+.hero-section {
+  padding: 120px 40px 80px;
+}
+
+.features-grid {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.comparison-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  overflow-x: auto;
+}
+
+.testimonials-grid {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .hero-section {
+    padding: 60px 20px 40px;
+  }
+
+  .features-grid {
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 20px;
+  }
+
+  .comparison-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .comparison-table {
+    min-width: 500px;
+  }
+
+  .testimonials-grid {
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 20px;
+  }
+}
+
+/* ================================
+   퀴즈 페이지 모바일 대응
+================================ */
+.quiz-container {
+  padding: 40px;
+}
+
+.quiz-question {
+  font-size: 20px;
+}
+
+@media (max-width: 767px) {
+  .quiz-container {
+    padding: 20px;
+  }
+
+  .quiz-question {
+    font-size: 16px;
+  }
+
+  .quiz-option {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+}
+
+/* ================================
+   Explain AI 페이지 모바일 대응
+================================ */
+.explain-container {
+  padding: 40px;
+}
+
+.explain-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 767px) {
+  .explain-container {
+    padding: 20px;
+  }
+
+  .explain-badges {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .explain-badge {
+    text-align: center;
+  }
+}

@@ -24,7 +24,6 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 문제 목록 불러오기
   useEffect(() => {
     fetch("http://localhost:4000/questions")
       .then((res) => res.json())
@@ -38,7 +37,6 @@ export default function QuizPage() {
       });
   }, []);
 
-  // 답변 제출
   const handleSubmit = async (optionIndex: number) => {
     if (selected !== null) return;
     setSelected(optionIndex);
@@ -56,14 +54,12 @@ export default function QuizPage() {
     setResult(data.correct ? "correct" : "wrong");
   };
 
-  // 다음 문제
   const handleNext = () => {
     setSelected(null);
     setResult(null);
     setCurrentIndex((prev) => prev + 1);
   };
 
-  // AI 해설 보기
   const handleExplain = () => {
     const currentQuestion = questions[currentIndex];
     const options = [
@@ -83,7 +79,6 @@ export default function QuizPage() {
     router.push(`/explain?${params.toString()}`);
   };
 
-  // 로딩 중
   if (loading) {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
@@ -94,7 +89,6 @@ export default function QuizPage() {
     );
   }
 
-  // 에러
   if (error) {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
@@ -105,7 +99,6 @@ export default function QuizPage() {
     );
   }
 
-  // 문제 다 풀었을 때
   if (currentIndex >= questions.length) {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
@@ -125,13 +118,15 @@ export default function QuizPage() {
   ];
 
   return (
-    <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
-      <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+    <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh" }}>
+      <div className="quiz-container" style={{ maxWidth: "700px", margin: "0 auto" }}>
 
         {/* 헤더 */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "40px" }}>
           <h1 style={{ fontSize: "24px", fontWeight: "bold", color: "#1F4E79" }}>TOPIK 트레이너</h1>
-          <span style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", fontWeight: "bold" }}>{currentQuestion.level}급</span>
+          <span style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "4px 12px", borderRadius: "8px", fontSize: "14px", fontWeight: "bold" }}>
+            {currentQuestion.level}급
+          </span>
         </div>
 
         {/* 문제 카드 */}
@@ -139,7 +134,7 @@ export default function QuizPage() {
           <p style={{ color: "#2E75B6", fontSize: "14px", marginBottom: "16px" }}>
             문제 {currentIndex + 1} / {questions.length}
           </p>
-          <p style={{ fontSize: "20px", color: "#1A1A2E", lineHeight: 1.6, marginBottom: "32px" }}>
+          <p className="quiz-question" style={{ color: "#1A1A2E", lineHeight: 1.6, marginBottom: "32px" }}>
             {currentQuestion.question_text}
           </p>
 
@@ -159,6 +154,7 @@ export default function QuizPage() {
             return (
               <div
                 key={i}
+                className="quiz-option"
                 onClick={() => handleSubmit(i + 1)}
                 style={{
                   border: `1px solid ${borderColor}`,
@@ -195,7 +191,6 @@ export default function QuizPage() {
         {/* 버튼 영역 */}
         {selected !== null && (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {/* 오답일 때만 AI 해설 보기 버튼 표시 */}
             {result === "wrong" && (
               <Button variant="golden" onClick={handleExplain} className="w-full">
                 🤖 AI 해설 보기

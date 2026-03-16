@@ -1,11 +1,12 @@
-// components/Navigation.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export default function Navigation() {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
     { href: "/dashboard", label: "대시보드" },
@@ -23,6 +24,7 @@ export default function Navigation() {
         justifyContent: "space-between",
         height: "64px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        position: "relative",
       }}
     >
       {/* 로고 */}
@@ -38,8 +40,8 @@ export default function Navigation() {
         K-Verse
       </Link>
 
-      {/* 메뉴 링크 */}
-      <div style={{ display: "flex", gap: "8px" }}>
+      {/* 데스크탑 메뉴 */}
+      <div className="nav-links">
         {links.map((link) => (
           <Link
             key={link.href}
@@ -50,6 +52,39 @@ export default function Navigation() {
               padding: "8px 16px",
               borderRadius: "8px",
               fontSize: "14px",
+              fontWeight: pathname === link.href ? "bold" : "normal",
+              backgroundColor:
+                pathname === link.href
+                  ? "rgba(255,255,255,0.15)"
+                  : "transparent",
+            }}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* 햄버거 버튼 (모바일) */}
+      <button
+        className="nav-hamburger"
+        onClick={() => setMenuOpen(!menuOpen)}
+      >
+        {menuOpen ? "✕" : "☰"}
+      </button>
+
+      {/* 모바일 메뉴 */}
+      <div className={`nav-mobile-menu ${menuOpen ? "open" : ""}`}>
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            onClick={() => setMenuOpen(false)}
+            style={{
+              color: pathname === link.href ? "#F5C518" : "white",
+              textDecoration: "none",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              fontSize: "16px",
               fontWeight: pathname === link.href ? "bold" : "normal",
               backgroundColor:
                 pathname === link.href

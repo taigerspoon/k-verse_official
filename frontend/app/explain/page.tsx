@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 function ExplainContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -21,7 +23,7 @@ function ExplainContent() {
     setExplanation(null);
 
     try {
-      const res = await fetch("http://localhost:4000/explain", {
+      const res = await fetch(`${API_URL}/explain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question, wrongAnswer, correctAnswer }),
@@ -29,7 +31,7 @@ function ExplainContent() {
       const data = await res.json();
       setExplanation(data.explanation);
     } catch {
-      setError("AI 설명을 불러오지 못했어요. 백엔드 서버를 확인해주세요.");
+      setError("잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,6 @@ function ExplainContent() {
             {question}
           </p>
 
-          {/* 내 답 / 정답 */}
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: "140px", backgroundColor: "#FFF5F5", borderRadius: "8px", padding: "12px 16px", border: "1px solid #FED7D7" }}>
               <p style={{ color: "#999", fontSize: "11px", fontWeight: "bold", marginBottom: "4px" }}>내가 선택한 답</p>
@@ -94,7 +95,6 @@ function ExplainContent() {
               <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#EBF4FF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>🤖</div>
               <p style={{ color: "#1F4E79", fontWeight: "bold", fontSize: "14px" }}>AI가 설명을 생성하는 중...</p>
             </div>
-            {/* 스켈레톤 라인들 */}
             {[100, 85, 92, 70].map((width, i) => (
               <div
                 key={i}
@@ -135,37 +135,17 @@ function ExplainContent() {
           </div>
         )}
 
-        {/* 하단 버튼 영역 */}
+        {/* 하단 버튼 */}
         <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
           <button
             onClick={() => router.push("/quiz")}
-            style={{
-              flex: 1,
-              backgroundColor: "#F5C518",
-              color: "#1A1A2E",
-              padding: "14px",
-              borderRadius: "8px",
-              border: "none",
-              fontWeight: "bold",
-              fontSize: "15px",
-              cursor: "pointer",
-            }}
+            style={{ flex: 1, backgroundColor: "#F5C518", color: "#1A1A2E", padding: "14px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}
           >
             📝 다음 문제 풀기
           </button>
           <button
             onClick={() => router.push("/dashboard")}
-            style={{
-              flex: 1,
-              backgroundColor: "white",
-              color: "#1F4E79",
-              padding: "14px",
-              borderRadius: "8px",
-              border: "1.5px solid #1F4E79",
-              fontWeight: "bold",
-              fontSize: "15px",
-              cursor: "pointer",
-            }}
+            style={{ flex: 1, backgroundColor: "white", color: "#1F4E79", padding: "14px", borderRadius: "8px", border: "1.5px solid #1F4E79", fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}
           >
             🏠 대시보드로
           </button>
@@ -173,7 +153,6 @@ function ExplainContent() {
 
       </div>
 
-      {/* 스켈레톤 애니메이션 CSS */}
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }

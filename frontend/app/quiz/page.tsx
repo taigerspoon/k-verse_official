@@ -15,6 +15,8 @@ type Question = {
   level: number;
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export default function QuizPage() {
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -28,7 +30,7 @@ export default function QuizPage() {
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:4000/questions")
+    fetch(`${API_URL}/questions`)
       .then((res) => res.json())
       .then((data) => {
         setQuestions(data);
@@ -45,7 +47,7 @@ export default function QuizPage() {
     setSelected(optionIndex);
 
     const currentQuestion = questions[currentIndex];
-    const res = await fetch("http://localhost:4000/answers", {
+    const res = await fetch(`${API_URL}/answers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -103,7 +105,6 @@ export default function QuizPage() {
     setShowResult(false);
   };
 
-  // 로딩
   if (loading) {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
@@ -114,7 +115,6 @@ export default function QuizPage() {
     );
   }
 
-  // 에러
   if (error) {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
@@ -125,7 +125,6 @@ export default function QuizPage() {
     );
   }
 
-  // 퀴즈 완료 화면
   if (finished) {
     const total = questions.length;
     const percentage = Math.round((score.correct / total) * 100);
@@ -203,7 +202,6 @@ export default function QuizPage() {
     <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh" }}>
       <div className="quiz-container" style={{ maxWidth: "700px", margin: "0 auto" }}>
 
-        {/* 헤더 */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
           <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#1F4E79" }}>TOPIK 트레이너</h1>
           <span style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "4px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: "bold" }}>
@@ -211,7 +209,6 @@ export default function QuizPage() {
           </span>
         </div>
 
-        {/* 프로그레스 바 */}
         <div style={{ marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ color: "#666", fontSize: "13px" }}>문제 {currentIndex + 1} / {questions.length}</span>
           <span style={{ color: "#666", fontSize: "13px" }}>정답 {score.correct}개</span>
@@ -226,7 +223,6 @@ export default function QuizPage() {
           }} />
         </div>
 
-        {/* 문제 카드 */}
         <div style={{ backgroundColor: "white", borderRadius: "12px", padding: "32px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "16px" }}>
           <p className="quiz-question" style={{ color: "#1A1A2E", lineHeight: 1.7, marginBottom: "28px", fontWeight: "500" }}>
             {currentQuestion.question_text}
@@ -234,9 +230,8 @@ export default function QuizPage() {
 
           {options.map((option, i) => {
             const optionNum = i + 1;
-            const isSelected = selected === optionNum;
             const isCorrect = optionNum === currentQuestion.correct_answer;
-            const isWrong = isSelected && !isCorrect;
+            const isWrong = selected === optionNum && !isCorrect;
 
             let bgColor = "white";
             let borderColor = "#E8E8E8";
@@ -297,7 +292,6 @@ export default function QuizPage() {
           })}
         </div>
 
-        {/* 정오 결과 */}
         {showResult && result && (
           <div style={{
             backgroundColor: result === "correct" ? "#F0FFF4" : "#FFF5F5",
@@ -322,7 +316,6 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* 버튼 영역 */}
         {selected !== null && (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {result === "wrong" && (

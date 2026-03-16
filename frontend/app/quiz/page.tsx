@@ -49,12 +49,13 @@ export default function QuizPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        questionId: currentQuestion.id,
-        selectedAnswer: optionIndex,
+        user_id: 1,
+        question_id: currentQuestion.id,
+        selected_answer: optionIndex,
       }),
     });
     const data = await res.json();
-    const isCorrect = data.correct;
+    const isCorrect = data.is_correct;
     setResult(isCorrect ? "correct" : "wrong");
     setScore((prev) => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
@@ -132,7 +133,6 @@ export default function QuizPage() {
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
         <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center", paddingTop: "60px" }}>
 
-          {/* 완료 아이콘 */}
           <div style={{ fontSize: "64px", marginBottom: "24px" }}>
             {percentage >= 80 ? "🏆" : percentage >= 60 ? "👏" : "💪"}
           </div>
@@ -144,16 +144,12 @@ export default function QuizPage() {
             {total}문제를 모두 풀었어요
           </p>
 
-          {/* 점수 카드 */}
           <div style={{ backgroundColor: "white", borderRadius: "16px", padding: "40px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", marginBottom: "32px" }}>
-
-            {/* 총점 */}
             <div style={{ marginBottom: "32px" }}>
               <p style={{ color: "#666", fontSize: "14px", marginBottom: "8px" }}>총 점수</p>
               <p style={{ fontSize: "64px", fontWeight: "bold", color: "#F5C518", lineHeight: 1 }}>{percentage}%</p>
             </div>
 
-            {/* 정답/오답 통계 */}
             <div style={{ display: "flex", gap: "24px", justifyContent: "center" }}>
               <div style={{ flex: 1, backgroundColor: "#F0FFF4", borderRadius: "12px", padding: "20px" }}>
                 <p style={{ fontSize: "32px", fontWeight: "bold", color: "#2E7D32" }}>{score.correct}</p>
@@ -165,7 +161,6 @@ export default function QuizPage() {
               </div>
             </div>
 
-            {/* 응원 메시지 */}
             <p style={{ color: "#666", fontSize: "15px", marginTop: "24px", lineHeight: 1.6 }}>
               {percentage >= 80
                 ? "🎉 훌륭해요! TOPIK 합격이 가까워지고 있어요!"
@@ -175,7 +170,6 @@ export default function QuizPage() {
             </p>
           </div>
 
-          {/* 버튼 */}
           <div style={{ display: "flex", gap: "12px" }}>
             <button
               onClick={handleRestart}
@@ -238,7 +232,6 @@ export default function QuizPage() {
             {currentQuestion.question_text}
           </p>
 
-          {/* 선택지 */}
           {options.map((option, i) => {
             const optionNum = i + 1;
             const isSelected = selected === optionNum;
@@ -348,7 +341,6 @@ export default function QuizPage() {
 
       </div>
 
-      {/* 페이드인 애니메이션 */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-8px); }

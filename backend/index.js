@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
-
+const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const client = new Anthropic();
@@ -12,7 +12,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
-
+app.use(cors());
 app.use(express.json());
 
 // 기본 라우트

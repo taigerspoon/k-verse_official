@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function ExplainPage() {
+function ExplainContent() {
+  const searchParams = useSearchParams();
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 테스트용 데이터
-  const testData = {
-    question: "나는 매일 아침 운동을 ( ) 건강이 많이 좋아졌다.",
-    wrongAnswer: "하거나",
-    correctAnswer: "하더니",
-  };
+  // URL에서 데이터 받기
+  const question = searchParams.get("question") || "나는 매일 아침 운동을 ( ) 건강이 많이 좋아졌다.";
+  const wrongAnswer = searchParams.get("wrongAnswer") || "하거나";
+  const correctAnswer = searchParams.get("correctAnswer") || "하더니";
 
   const handleExplain = async () => {
     setLoading(true);
@@ -23,7 +24,7 @@ export default function ExplainPage() {
       const res = await fetch("http://localhost:4000/explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(testData),
+        body: JSON.stringify({ question, wrongAnswer, correctAnswer }),
       });
       const data = await res.json();
       setExplanation(data.explanation);
@@ -46,11 +47,11 @@ export default function ExplainPage() {
         <div style={{ backgroundColor: "white", borderRadius: "8px", padding: "32px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "24px" }}>
           <p style={{ color: "#E53E3E", fontSize: "14px", fontWeight: "bold", marginBottom: "12px" }}>❌ 틀린 문제</p>
           <p style={{ fontSize: "16px", color: "#1A1A2E", lineHeight: 1.6, marginBottom: "16px" }}>
-            {testData.question}
+            {question}
           </p>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <span style={{ backgroundColor: "#FFE5E5", color: "#E53E3E", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>내 답: {testData.wrongAnswer}</span>
-            <span style={{ backgroundColor: "#E5F5E5", color: "#2E7D32", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>정답: {testData.correctAnswer}</span>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <span style={{ backgroundColor: "#FFE5E5", color: "#E53E3E", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>내 답: {wrongAnswer}</span>
+            <span style={{ backgroundColor: "#E5F5E5", color: "#2E7D32", padding: "6px 16px", borderRadius: "8px", fontSize: "14px" }}>정답: {correctAnswer}</span>
           </div>
         </div>
 
@@ -90,5 +91,19 @@ export default function ExplainPage() {
 
       </div>
     </main>
+  );
+}
+
+export default function ExplainPage() {
+  return (
+    <Suspense fallback={
+      <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
+        <div style={{ maxWidth: "700px", margin: "0 auto", textAlign: "center", paddingTop: "100px" }}>
+          <p style={{ color: "#2E75B6", fontSize: "18px" }}>로딩 중...</p>
+        </div>
+      </main>
+    }>
+      <ExplainContent />
+    </Suspense>
   );
 }

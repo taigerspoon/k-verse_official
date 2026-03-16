@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Button from "@/components/Button";
 
 type Question = {
   id: string;
@@ -14,6 +16,7 @@ type Question = {
 };
 
 export default function QuizPage() {
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -58,6 +61,26 @@ export default function QuizPage() {
     setSelected(null);
     setResult(null);
     setCurrentIndex((prev) => prev + 1);
+  };
+
+  // AI 해설 보기
+  const handleExplain = () => {
+    const currentQuestion = questions[currentIndex];
+    const options = [
+      currentQuestion.option_1,
+      currentQuestion.option_2,
+      currentQuestion.option_3,
+      currentQuestion.option_4,
+    ];
+    const wrongAnswer = selected !== null ? options[selected - 1] : "";
+    const correctAnswer = options[currentQuestion.correct_answer - 1];
+
+    const params = new URLSearchParams({
+      question: currentQuestion.question_text,
+      wrongAnswer,
+      correctAnswer,
+    });
+    router.push(`/explain?${params.toString()}`);
   };
 
   // 로딩 중
@@ -169,14 +192,22 @@ export default function QuizPage() {
           </div>
         )}
 
-        {/* 다음 버튼 */}
+        {/* 버튼 영역 */}
         {selected !== null && (
-          <button
-            onClick={handleNext}
-            style={{ width: "100%", backgroundColor: "#1F4E79", color: "white", padding: "16px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "16px", cursor: "pointer" }}
-          >
-            다음 문제 →
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {/* 오답일 때만 AI 해설 보기 버튼 표시 */}
+            {result === "wrong" && (
+              <Button variant="golden" onClick={handleExplain} className="w-full">
+                🤖 AI 해설 보기
+              </Button>
+            )}
+            <button
+              onClick={handleNext}
+              style={{ width: "100%", backgroundColor: "#1F4E79", color: "white", padding: "16px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "16px", cursor: "pointer" }}
+            >
+              다음 문제 →
+            </button>
+          </div>
         )}
 
       </div>

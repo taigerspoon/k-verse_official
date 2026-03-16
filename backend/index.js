@@ -63,7 +63,31 @@ app.post('/explain', async (req, res) => {
 
   res.json({ explanation: message.content[0].text });
 });
+// 답변 제출
+app.post('/answers', async (req, res) => {
+  const { user_id, question_id, selected_answer } = req.body;
 
+  // 정답 가져오기
+  const { data: question, error: qError } = await supabase
+    .from('questions')
+    .select('correct_answer')
+    .eq('id', question_id)
+    .single();
+
+  if (qError) return res.status(500).json({ error: qError.message });
+
+  // is_correct 자동 계산
+  const is_correct = selected_answer === question.correct_answer;
+
+  // user_answers에 저장
+  const { data, error } = await supabase
+    .from('user_answers')
+    .insert([{ user_id, question_id, selected_answer, is_correct }])
+    .select();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true, is_correct, data });
+});
 app.listen(PORT, () => {
   console.log(`서버 시작! http://localhost:${PORT}`);
 });

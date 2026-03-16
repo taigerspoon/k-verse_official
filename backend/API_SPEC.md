@@ -1,6 +1,6 @@
 # K-Verse Backend API 명세서
 
-> 베이스 URL: `http://localhost:3000` (개발) / 배포 후 변경 예정  
+> 베이스 URL: `http://localhost:4000` (개발) / 배포 후 변경 예정  
 > 최종 업데이트: 2026-03-16
 
 ---
@@ -12,15 +12,54 @@
 
 ---
 
+## 0. 구글 로그인 (Google OAuth)
+
+K-Verse는 Supabase Auth를 통해 구글 로그인을 지원합니다.  
+백엔드 서버가 아닌 **프론트엔드에서 Supabase 클라이언트로 직접 처리**합니다.
+
+### 프론트엔드 구현 방법 (Next.js)
+
+```javascript
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// 구글 로그인 버튼 클릭 시
+const { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: 'http://localhost:3000' // 로그인 후 이동할 페이지
+  }
+})
+```
+
+### 로그인 후 유저 정보 가져오기
+
+```javascript
+const { data: { user } } = await supabase.auth.getUser()
+console.log(user.id)    // user_id (Supabase Auth UUID)
+console.log(user.email) // 이메일
+```
+
+### 로그아웃
+
+```javascript
+await supabase.auth.signOut()
+```
+
+### 인증 상태
+- **현재 MVP 단계**: 백엔드 API는 토큰 없이 호출 가능
+- **추후 배포 시**: JWT 토큰 검증 미들웨어 추가 예정
+
+---
+
 ## 1. 서버 상태 확인
 
 ### `GET /`
 
-서버가 정상 작동 중인지 확인합니다.
-
 **요청**
 ```
-GET http://localhost:3000/
+GET http://localhost:4000/
 ```
 
 **응답**
@@ -36,11 +75,9 @@ GET http://localhost:3000/
 
 ### `GET /questions`
 
-questions 테이블의 전체 문제를 가져옵니다.
-
 **요청**
 ```
-GET http://localhost:3000/questions
+GET http://localhost:4000/questions
 ```
 
 **응답**
@@ -48,14 +85,12 @@ GET http://localhost:3000/questions
 [
   {
     "id": 1,
-    "created_at": "2026-03-16T01:33:40.511+00:00",
-    "question_text": "[듣기] 다음을 듣고 이어지는 말로 알맞은 것을 고르십시오.\n여자: 누구하고 공부했어요?\n남자: ___________",
+    "question_text": "[듣기] 다음을 듣고...",
     "option_1": "어제 공부했어요.",
     "option_2": "오후에 공부했어요.",
     "option_3": "친구하고 공부했어요.",
     "option_4": "한국어를 공부했어요.",
     "correct_answer": 3,
-    "explanation_vi": null,
     "level": 1,
     "question_type": "듣기",
     "exam_year": 2024,
@@ -70,42 +105,14 @@ GET http://localhost:3000/questions
 
 ### `GET /questions/:id`
 
-특정 문제 1개의 상세 정보를 가져옵니다.
-
 **요청**
 ```
-GET http://localhost:3000/questions/1
+GET http://localhost:4000/questions/1
 ```
 
 | 파라미터 | 위치 | 타입 | 필수 | 설명 |
 |---------|------|------|------|------|
 | id | URL | number | ✅ | 문제 ID |
-
-**응답 (성공)**
-```json
-{
-  "id": 1,
-  "created_at": "2026-03-16T01:33:40.511+00:00",
-  "question_text": "[듣기] 다음을 듣고 이어지는 말로 알맞은 것을 고르십시오.\n여자: 누구하고 공부했어요?\n남자: ___________",
-  "option_1": "어제 공부했어요.",
-  "option_2": "오후에 공부했어요.",
-  "option_3": "친구하고 공부했어요.",
-  "option_4": "한국어를 공부했어요.",
-  "correct_answer": 3,
-  "explanation_vi": null,
-  "level": 1,
-  "question_type": "듣기",
-  "exam_year": 2024,
-  "exam_round": 96
-}
-```
-
-**응답 (실패 - 없는 ID)**
-```json
-{
-  "error": "JSON object requested, multiple (or no) rows returned"
-}
-```
 
 ---
 
@@ -113,11 +120,9 @@ GET http://localhost:3000/questions/1
 
 ### `POST /answers`
 
-유저가 문제에 답변을 제출합니다. 정답 여부를 자동으로 계산하고 user_answers 테이블에 저장합니다.
-
 **요청**
 ```
-POST http://localhost:3000/answers
+POST http://localhost:4000/answers
 Content-Type: application/json
 ```
 
@@ -130,47 +135,44 @@ Content-Type: application/json
 }
 ```
 
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| user_id | number | ✅ | 유저 ID |
-| question_id | number | ✅ | 문제 ID |
-| selected_answer | number | ✅ | 유저가 선택한 보기 번호 (1~4) |
-
-**응답 (성공)**
+**응답**
 ```json
 {
   "success": true,
   "is_correct": true,
-  "data": [
-    {
-      "id": 1,
-      "created_at": "2026-03-16T01:53:29.382+00:00",
-      "user_id": 1,
-      "question_id": 1,
-      "selected_answer": 3,
-      "is_correct": true
-    }
-  ]
+  "data": [...]
 }
 ```
 
-| 필드 | 타입 | 설명 |
-|------|------|------|
-| success | boolean | 저장 성공 여부 |
-| is_correct | boolean | 정답 여부 (자동 계산) |
-| data | array | 저장된 레코드 |
-
 ---
 
-## 5. AI 오답 해설 (Explain AI)
+## 5. 점수 조회
 
-### `POST /explain`
-
-틀린 문제에 대해 Claude AI가 베트남어로 해설을 제공합니다.
+### `GET /scores/:user_id`
 
 **요청**
 ```
-POST http://localhost:3000/explain
+GET http://localhost:4000/scores/1
+```
+
+**응답**
+```json
+{
+  "total": 15,
+  "correct": 10,
+  "accuracy": 66.7
+}
+```
+
+---
+
+## 6. AI 오답 해설
+
+### `POST /explain`
+
+**요청**
+```
+POST http://localhost:4000/explain
 Content-Type: application/json
 ```
 
@@ -182,12 +184,6 @@ Content-Type: application/json
   "correctAnswer": "2"
 }
 ```
-
-| 필드 | 타입 | 필수 | 설명 |
-|------|------|------|------|
-| question | string | ✅ | 문제 텍스트 |
-| wrongAnswer | string | ✅ | 유저가 선택한 오답 |
-| correctAnswer | string | ✅ | 정답 |
 
 **응답**
 ```json

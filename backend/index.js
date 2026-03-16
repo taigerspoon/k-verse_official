@@ -88,6 +88,23 @@ app.post('/answers', async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true, is_correct, data });
 });
+
+// 점수 조회
+app.get('/scores/:user_id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('user_answers')
+    .select('is_correct')
+    .eq('user_id', req.params.user_id);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const total = data.length;
+  const correct = data.filter(a => a.is_correct).length;
+  const accuracy = total === 0 ? 0 : Math.round((correct / total) * 1000) / 10;
+
+  res.json({ total, correct, accuracy });
+});
+
 app.listen(PORT, () => {
   console.log(`서버 시작! http://localhost:${PORT}`);
 });

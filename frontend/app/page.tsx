@@ -1,14 +1,6 @@
 export default function Home() {
   return (
     <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
-      
-      {/* 헤더 */}
-      <header style={{ backgroundColor: "#1F4E79", padding: "20px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ color: "white", fontSize: "24px", fontWeight: "bold", margin: 0 }}>K-Verse</h1>
-        <button style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "10px 24px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "16px", cursor: "pointer" }}>
-          무료로 시작하기
-        </button>
-      </header>
 
       {/* Hero 섹션 */}
       <section style={{ textAlign: "center", padding: "120px 40px 80px", maxWidth: "800px", margin: "0 auto" }}>
@@ -30,7 +22,7 @@ export default function Home() {
           K-Verse만의 핵심 기능
         </h3>
         <div style={{ display: "flex", gap: "32px", justifyContent: "center", flexWrap: "wrap" }}>
-          
+
           <div style={{ backgroundColor: "white", borderRadius: "8px", padding: "40px 32px", flex: 1, minWidth: "260px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             <div style={{ fontSize: "40px", marginBottom: "16px" }}>🤖</div>
             <h4 style={{ fontSize: "20px", fontWeight: "bold", color: "#1F4E79", marginBottom: "12px" }}>Explain AI</h4>

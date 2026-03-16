@@ -1,5 +1,3 @@
-import Button from "@/components/Button";
-
 export default function ExplainPage() {
   return (
     <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
@@ -22,7 +20,7 @@ export default function ExplainPage() {
         </div>
 
         {/* AI 설명 */}
-        <div style={{ backgroundColor: "white", borderRadius: "8px", padding: "32px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "24px" }}>
+        <div style={{ backgroundColor: "white", borderRadius: "8px", padding: "32px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
           <p style={{ color: "#1F4E79", fontSize: "14px", fontWeight: "bold", marginBottom: "16px" }}>🤖 AI 설명 (Tiếng Việt)</p>
           <p style={{ color: "#1A1A2E", lineHeight: 1.8, marginBottom: "16px" }}>
             <strong>-하더니</strong> được dùng khi hành động ở vế trước dẫn đến kết quả ở vế sau.
@@ -30,13 +28,6 @@ export default function ExplainPage() {
           <p style={{ color: "#666", lineHeight: 1.8, fontSize: "14px" }}>
             💡 <strong>-하거나</strong> có nghĩa là "hoặc là", dùng để liệt kê các lựa chọn — không phù hợp ở đây vì câu này thể hiện quan hệ nhân quả.
           </p>
-        </div>
-
-        {/* 버튼 테스트 */}
-        <div style={{ display: "flex", gap: "12px" }}>
-          <Button variant="primary">프라이머리 버튼</Button>
-          <Button variant="secondary">세컨더리 버튼</Button>
-          <Button variant="golden">골든 버튼</Button>
         </div>
 
       </div>

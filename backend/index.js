@@ -105,6 +105,117 @@ app.get('/scores/:user_id', async (req, res) => {
   res.json({ total, correct, accuracy });
 });
 
+// ─────────────────────────────────────────
+// 진단 테스트
+// ─────────────────────────────────────────
+
+// 레벨 판정 기준 (나중에 쉽게 수정 가능)
+const DIAGNOSTIC_CONFIG = {
+  totalQuestions: 30,
+  levels: [
+    { level: '입문', min: 0,  max: 8  },
+    { level: '3급',  min: 9,  max: 14 },
+    { level: '4급',  min: 15, max: 20 },
+    { level: '5급',  min: 21, max: 25 },
+    { level: '6급',  min: 26, max: 30 },
+  ]
+};
+
+function determineLevel(correctCount) {
+  for (const entry of DIAGNOSTIC_CONFIG.levels) {
+    if (correctCount >= entry.min && correctCount <= entry.max) {
+      return entry.level;
+    }
+  }
+  return '입문';
+}
+
+// POST /diagnostic
+// body: { user_id, answers: [{question_id, selected_answer}, ...] }
+app.post('/diagnostic', async (req, res) => {
+  const { user_id, answers } = req.body;
+
+  // 유효성 검사
+  if (!user_id || !answers || !Array.isArray(answers)) {
+    return res.status(400).json({ error: 'user_id와 answers 배열이 필요합니다.' });
+  }
+  if (answers.length !== DIAGNOSTIC_CONFIG.totalQuestions) {
+    return res.status(400).json({ error: `답변은 정확히 ${DIAGNOSTIC_CONFIG.totalQuestions}개여야 합니다.` });
+  }
+
+  // 문제 정답 가져오기
+  const questionIds = answers.map(a => a.question_id);
+  const { data: questions, error: qError } = await supabase
+    .from('questions')
+    .select('id, correct_answer')
+    .in('id', questionIds);
+
+  if (qError) return res.status(500).json({ error: qError.message });
+
+  // 채점
+  const answerMap = {};
+  questions.forEach(q => { answerMap[q.id] = q.correct_answer; });
+
+  let correctCount = 0;
+  const userAnswersToInsert = answers.map(a => {
+    const is_correct = a.selected_answer === answerMap[a.question_id];
+    if (is_correct) correctCount++;
+    return {
+      user_id,
+      question_id: a.question_id,
+      selected_answer: a.selected_answer,
+      is_correct
+    };
+  });
+
+  // user_answers에 저장
+  const { error: insertError } = await supabase
+    .from('user_answers')
+    .insert(userAnswersToInsert);
+
+  if (insertError) return res.status(500).json({ error: insertError.message });
+
+  // 레벨 판정
+  const resultLevel = determineLevel(correctCount);
+
+  // users 테이블 level 업데이트
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({ level: resultLevel })
+    .eq('id', user_id);
+
+  if (updateError) return res.status(500).json({ error: updateError.message });
+
+  // 결과 반환
+  res.json({
+    success: true,
+    result: {
+      correct: correctCount,
+      total: DIAGNOSTIC_CONFIG.totalQuestions,
+      percentage: Math.round((correctCount / DIAGNOSTIC_CONFIG.totalQuestions) * 100),
+      level: resultLevel
+    }
+  });
+});
+
+// GET /diagnostic/questions
+// 읽기 문제 30개 랜덤 출제
+app.get('/diagnostic/questions', async (req, res) => {
+  const { data, error } = await supabase
+    .from('questions')
+    .select('id, question_text, option_1, option_2, option_3, option_4, level')
+    .eq('question_type', '읽기')
+    .limit(100); // 풀에서 랜덤 추출
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // 랜덤 셔플 후 30개 추출
+  const shuffled = data.sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, DIAGNOSTIC_CONFIG.totalQuestions);
+
+  res.json({ questions: selected });
+});
+
 app.listen(PORT, () => {
   console.log(`서버 시작! http://localhost:${PORT}`);
 });

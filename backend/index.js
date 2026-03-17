@@ -20,14 +20,41 @@ app.get('/', (req, res) => {
   res.json({ message: 'K-Verse 백엔드 서버 작동 중! 🎉' });
 });
 
-// 문제 전체 목록
+// 문제 전체 목록 (레벨 필터링 가능)
+// GET /questions          → 전체
+// GET /questions?level=3  → 3급 문제만
 app.get('/questions', async (req, res) => {
-  const { data, error } = await supabase
-    .from('questions')
-    .select('*');
+  const { level } = req.query;
 
+  let query = supabase.from('questions').select('*');
+  if (level) query = query.eq('level', parseInt(level));
+
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
+});
+
+// 유저 레벨에 맞는 문제 반환
+// GET /questions/user/:user_id
+app.get('/questions/user/:user_id', async (req, res) => {
+  // 유저 레벨 조회
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('level')
+    .eq('id', req.params.user_id)
+    .single();
+
+  if (userError) return res.status(500).json({ error: userError.message });
+  if (!user) return res.status(404).json({ error: '유저를 찾을 수 없습니다.' });
+
+  // 유저 레벨에 맞는 문제 조회
+  const { data, error } = await supabase
+    .from('questions')
+    .select('*')
+    .eq('level', user.level);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ level: user.level, questions: data });
 });
 
 // 문제 1개 상세

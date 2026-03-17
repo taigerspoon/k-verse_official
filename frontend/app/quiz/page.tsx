@@ -34,7 +34,7 @@ function QuizContent() {
   const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/questions`)
+    fetch(`${API_URL}/questions/user/1`) // TODO: 로그인 연동 후 실제 user_id로 교체
       .then((res) => res.json())
       .then((data) => {
         setQuestions(data);

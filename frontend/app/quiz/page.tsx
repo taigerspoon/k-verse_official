@@ -35,10 +35,14 @@ function QuizContent() {
 
   useEffect(() => {
     fetch(`${API_URL}/questions/user/1`) // TODO: 로그인 연동 후 실제 user_id로 교체
-      .then((res) => res.json())
-      .then((data) => {
-        setQuestions(data);
-        setLoading(false);
+  .then((res) => res.json())
+  .then((data) => {
+    const questionList = data.questions || data;
+    setQuestions(questionList);
+    setLoading(false);
+    if (startIndex >= questionList.length) {
+      setFinished(true);
+    }
         // startIndex가 전체 문제 수 이상이면 완료 화면으로
         if (startIndex >= data.length) {
           setFinished(true);

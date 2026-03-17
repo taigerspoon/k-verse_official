@@ -16,6 +16,7 @@ function ExplainContent() {
   const question = searchParams.get("question") || "나는 매일 아침 운동을 ( ) 건강이 많이 좋아졌다.";
   const wrongAnswer = searchParams.get("wrongAnswer") || "하거나";
   const correctAnswer = searchParams.get("correctAnswer") || "하더니";
+  const currentIndex = parseInt(searchParams.get("currentIndex") || "0");
 
   const handleExplain = async () => {
     setLoading(true);
@@ -35,6 +36,12 @@ function ExplainContent() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 다음 문제로 이동
+  const handleNextQuestion = () => {
+    const nextIndex = currentIndex + 1;
+    router.push(`/quiz?startIndex=${nextIndex}`);
   };
 
   return (
@@ -138,7 +145,7 @@ function ExplainContent() {
         {/* 하단 버튼 */}
         <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
           <button
-            onClick={() => router.push("/quiz")}
+            onClick={handleNextQuestion}
             style={{ flex: 1, backgroundColor: "#F5C518", color: "#1A1A2E", padding: "14px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}
           >
             📝 다음 문제 풀기

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
+import { Suspense } from "react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 type Question = {
   id: string;
@@ -15,12 +18,13 @@ type Question = {
   level: number;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-export default function QuizPage() {
+function QuizContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const startIndex = parseInt(searchParams.get("startIndex") || "0");
+
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [selected, setSelected] = useState<number | null>(null);
   const [result, setResult] = useState<"correct" | "wrong" | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,10 @@ export default function QuizPage() {
       .then((data) => {
         setQuestions(data);
         setLoading(false);
+        // startIndex가 전체 문제 수 이상이면 완료 화면으로
+        if (startIndex >= data.length) {
+          setFinished(true);
+        }
       })
       .catch(() => {
         setError("문제를 불러오지 못했어요. 백엔드 서버를 확인해주세요.");
@@ -92,6 +100,7 @@ export default function QuizPage() {
       question: currentQuestion.question_text,
       wrongAnswer,
       correctAnswer,
+      currentIndex: currentIndex.toString(),
     });
     router.push(`/explain?${params.toString()}`);
   };
@@ -196,7 +205,7 @@ export default function QuizPage() {
     currentQuestion.option_3,
     currentQuestion.option_4,
   ];
-  const progress = ((currentIndex) / questions.length) * 100;
+  const progress = (currentIndex / questions.length) * 100;
 
   return (
     <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh" }}>
@@ -342,5 +351,19 @@ export default function QuizPage() {
       `}</style>
 
     </main>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={
+      <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", padding: "40px" }}>
+        <div style={{ maxWidth: "700px", margin: "0 auto", textAlign: "center", paddingTop: "100px" }}>
+          <p style={{ color: "#2E75B6", fontSize: "18px" }}>로딩 중...</p>
+        </div>
+      </main>
+    }>
+      <QuizContent />
+    </Suspense>
   );
 }

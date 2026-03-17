@@ -26,8 +26,8 @@ async function upload(filePath) {
 }
 
 async function main() {
-  await upload('TOPIK_2023_91차_읽기.xlsx');
-  await upload('TOPIK_2024_96차_읽기.xlsx');
+ await upload('TOPIK_2023_91차_읽기_v3.xlsx');
+await upload('TOPIK_2024_96차_읽기_v3.xlsx');
 }
 
 main();

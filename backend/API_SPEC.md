@@ -1,7 +1,7 @@
 # K-Verse Backend API 명세서
 
-> 베이스 URL: `http://localhost:4000` (개발) / 배포 후 변경 예정  
-> 최종 업데이트: 2026-03-16
+> 베이스 URL: `http://localhost:4000` (개발) / `https://k-verse-production.up.railway.app` (배포)
+> 최종 업데이트: 2026-03-17
 
 ---
 
@@ -59,7 +59,7 @@ await supabase.auth.signOut()
 
 **요청**
 ```
-GET http://localhost:4000/
+GET https://k-verse-production.up.railway.app/
 ```
 
 **응답**
@@ -75,26 +75,36 @@ GET http://localhost:4000/
 
 ### `GET /questions`
 
+레벨 필터링 가능 (파라미터 없으면 전체 반환)
+
 **요청**
 ```
-GET http://localhost:4000/questions
+GET https://k-verse-production.up.railway.app/questions
+GET https://k-verse-production.up.railway.app/questions?level=3
 ```
+
+| 파라미터 | 위치 | 타입 | 필수 | 설명 |
+|---------|------|------|------|------|
+| level | Query | number | ❌ | 레벨 필터 (3, 4, 5, 6) |
 
 **응답**
 ```json
 [
   {
     "id": 1,
-    "question_text": "[듣기] 다음을 듣고...",
-    "option_1": "어제 공부했어요.",
-    "option_2": "오후에 공부했어요.",
-    "option_3": "친구하고 공부했어요.",
-    "option_4": "한국어를 공부했어요.",
-    "correct_answer": 3,
-    "level": 1,
-    "question_type": "듣기",
-    "exam_year": 2024,
-    "exam_round": 96
+    "question_text": "[읽기] 다음을 읽고...",
+    "option_1": "이사한 지",
+    "option_2": "이사하거든",
+    "option_3": "이사하려면",
+    "option_4": "이사하고 나서",
+    "correct_answer": 4,
+    "explanation_vi": null,
+    "level": 3,
+    "question_type": "읽기",
+    "exam_year": 2023,
+    "exam_round": 91,
+    "image_url": null,
+    "passage": null
   }
 ]
 ```
@@ -107,7 +117,7 @@ GET http://localhost:4000/questions
 
 **요청**
 ```
-GET http://localhost:4000/questions/1
+GET https://k-verse-production.up.railway.app/questions/1
 ```
 
 | 파라미터 | 위치 | 타입 | 필수 | 설명 |
@@ -116,13 +126,50 @@ GET http://localhost:4000/questions/1
 
 ---
 
-## 4. 답변 제출
+## 4. 유저 레벨 맞춤 문제
+
+### `GET /questions/user/:user_id`
+
+해당 유저의 레벨에 맞는 문제 목록 반환
+
+**요청**
+```
+GET https://k-verse-production.up.railway.app/questions/user/1
+```
+
+| 파라미터 | 위치 | 타입 | 필수 | 설명 |
+|---------|------|------|------|------|
+| user_id | URL | number | ✅ | 유저 ID |
+
+**응답**
+```json
+{
+  "level": 3,
+  "questions": [
+    {
+      "id": 46,
+      "question_text": "...",
+      "option_1": "...",
+      "option_2": "...",
+      "option_3": "...",
+      "option_4": "...",
+      "correct_answer": 4,
+      "level": 3,
+      "question_type": "읽기"
+    }
+  ]
+}
+```
+
+---
+
+## 5. 답변 제출
 
 ### `POST /answers`
 
 **요청**
 ```
-POST http://localhost:4000/answers
+POST https://k-verse-production.up.railway.app/answers
 Content-Type: application/json
 ```
 
@@ -146,13 +193,13 @@ Content-Type: application/json
 
 ---
 
-## 5. 점수 조회
+## 6. 점수 조회
 
 ### `GET /scores/:user_id`
 
 **요청**
 ```
-GET http://localhost:4000/scores/1
+GET https://k-verse-production.up.railway.app/scores/1
 ```
 
 **응답**
@@ -166,13 +213,13 @@ GET http://localhost:4000/scores/1
 
 ---
 
-## 6. AI 오답 해설
+## 7. AI 오답 해설
 
 ### `POST /explain`
 
 **요청**
 ```
-POST http://localhost:4000/explain
+POST https://k-verse-production.up.railway.app/explain
 Content-Type: application/json
 ```
 
@@ -194,6 +241,85 @@ Content-Type: application/json
 
 ---
 
+## 8. 진단 테스트 문제 출제
+
+### `GET /diagnostic/questions`
+
+읽기 문제 30개 랜덤 출제 (정답 제외)
+
+**요청**
+```
+GET https://k-verse-production.up.railway.app/diagnostic/questions
+```
+
+**응답**
+```json
+{
+  "questions": [
+    {
+      "id": 46,
+      "question_text": "새집으로 ( ) 가구를 새로 샀다.",
+      "option_1": "이사한 지",
+      "option_2": "이사하거든",
+      "option_3": "이사하려면",
+      "option_4": "이사하고 나서",
+      "level": 3
+    }
+  ]
+}
+```
+
+---
+
+## 9. 진단 테스트 제출 및 레벨 판정
+
+### `POST /diagnostic`
+
+30문항 답변 제출 → 채점 → 레벨 자동 판정 → users.level 업데이트
+
+**요청**
+```
+POST https://k-verse-production.up.railway.app/diagnostic
+Content-Type: application/json
+```
+
+**요청 Body**
+```json
+{
+  "user_id": 1,
+  "answers": [
+    { "question_id": 46, "selected_answer": 4 },
+    { "question_id": 47, "selected_answer": 2 }
+  ]
+}
+```
+
+> ⚠️ answers 배열은 반드시 30개여야 합니다.
+
+**응답**
+```json
+{
+  "success": true,
+  "result": {
+    "correct": 18,
+    "total": 30,
+    "percentage": 60,
+    "level": "4급"
+  }
+}
+```
+
+**레벨 판정 기준**
+| 정답 수 | 판정 레벨 |
+|---------|----------|
+| 0 ~ 8개 | 입문 |
+| 9 ~ 14개 | 3급 |
+| 15 ~ 20개 | 4급 |
+| 21 ~ 25개 | 5급 |
+| 26 ~ 30개 | 6급 |
+
+---
+
 ## DB 테이블 구조
 
 ### users
@@ -202,7 +328,7 @@ Content-Type: application/json
 | id | int8 | PK, 자동생성 |
 | email | text | 이메일 |
 | display_name | text | 닉네임 |
-| level | int2 | 현재 급수 (1~4) |
+| level | int2 | 현재 급수 |
 | native_language | text | 모국어 (기본값: vi) |
 | target_language | text | 학습 언어 (기본값: ko) |
 | created_at | timestamp | 자동생성 |
@@ -219,6 +345,8 @@ Content-Type: application/json
 | question_type | text | 문제 유형 (듣기/읽기/쓰기) |
 | exam_year | int2 | 출제 연도 |
 | exam_round | int2 | 출제 회차 |
+| image_url | text | 도표/그림 URL (nullable) |
+| passage | text | 긴 지문 (nullable) |
 | created_at | timestamp | 자동생성 |
 
 ### user_answers

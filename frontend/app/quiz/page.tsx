@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
 import { Suspense } from "react";
+import { supabase } from "@/lib/supabase";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -32,19 +33,27 @@ function QuizContent() {
   const [score, setScore] = useState({ correct: 0, wrong: 0 });
   const [finished, setFinished] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [userId, setUserId] = useState<string>("1"); // 기본값 1
 
   useEffect(() => {
-    fetch(`${API_URL}/questions/user/1`) // TODO: 로그인 연동 후 실제 user_id로 교체
-  .then((res) => res.json())
-  .then((data) => {
-    const questionList = data.questions || data;
-    setQuestions(questionList);
-    setLoading(false);
-    if (startIndex >= questionList.length) {
-      setFinished(true);
-    }
-        // startIndex가 전체 문제 수 이상이면 완료 화면으로
-        if (startIndex >= data.length) {
+    // 로그인된 유저 정보 가져오기
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_URL}/questions/user/${userId}`) // TODO: 로그인 연동 후 실제 user_id로 교체
+      .then((res) => res.json())
+      .then((data) => {
+        const questionList = data.questions || data;
+        setQuestions(questionList);
+        setLoading(false);
+        if (startIndex >= questionList.length) {
           setFinished(true);
         }
       })
@@ -52,7 +61,7 @@ function QuizContent() {
         setError("문제를 불러오지 못했어요. 백엔드 서버를 확인해주세요.");
         setLoading(false);
       });
-  }, []);
+  }, [userId]);
 
   const handleSubmit = async (optionIndex: number) => {
     if (selected !== null) return;
@@ -63,7 +72,7 @@ function QuizContent() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        user_id: 1,
+        user_id: userId,
         question_id: currentQuestion.id,
         selected_answer: optionIndex,
       }),

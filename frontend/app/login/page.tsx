@@ -13,7 +13,9 @@ export default function LoginPage() {
     // URL의 해시(#)에서 세션 처리
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        router.push("/dashboard");
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirect") || "/diagnostic";
+        router.push(redirectTo);
       }
     });
 
@@ -21,7 +23,9 @@ export default function LoginPage() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push("/dashboard");
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirect") || "/diagnostic";
+        router.push(redirectTo);
       }
     };
     checkSession();

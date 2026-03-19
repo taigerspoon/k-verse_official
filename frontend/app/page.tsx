@@ -1,4 +1,33 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+
 export default function Home() {
+  const router = useRouter();
+  const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkUser();
+  }, []);
+
+  const handleDiagnosticClick = () => {
+    if (isLoggedIn) {
+      router.push('/diagnostic');
+    } else {
+      router.push('/login?redirect=/diagnostic');
+    }
+  };
+
   return (
     <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", fontFamily: "Arial, sans-serif" }}>
 
@@ -11,8 +40,10 @@ export default function Home() {
           베트남 학습자를 위한 AI 한국어 코치<br />
           틀린 문제를 베트남어로 바로 설명해드려요
         </p>
-        <button style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "18px 48px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "20px", cursor: "pointer" }}>
-          무료로 시작하기 →
+        <button
+          onClick={handleDiagnosticClick}
+          style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "18px 48px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "20px", cursor: "pointer" }}>
+          무료로 진단하기 →
         </button>
       </section>
 
@@ -57,32 +88,26 @@ export default function Home() {
           <div className="comparison-wrapper">
             <div className="comparison-table" style={{ border: "1px solid #E0E0E0", borderRadius: "8px", overflow: "hidden" }}>
 
-              {/* 헤더 행 */}
               <div style={{ backgroundColor: "#F8FAFC", padding: "20px", fontWeight: "bold", color: "#666", fontSize: "14px", borderBottom: "1px solid #E0E0E0" }}>기능</div>
               <div style={{ backgroundColor: "#F8FAFC", padding: "20px", fontWeight: "bold", color: "#666", fontSize: "14px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0" }}>Duolingo</div>
               <div style={{ backgroundColor: "#1F4E79", padding: "20px", fontWeight: "bold", color: "#F5C518", fontSize: "14px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0" }}>K-Verse ✨</div>
 
-              {/* 행 1 */}
               <div style={{ padding: "20px", color: "#1A1A2E", fontSize: "15px", borderBottom: "1px solid #E0E0E0" }}>문법 설명</div>
               <div style={{ padding: "20px", color: "#999", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0" }}>❌ 패턴 반복만</div>
               <div style={{ padding: "20px", color: "white", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0", backgroundColor: "#2E75B6" }}>✅ 베트남어로 직접 설명</div>
 
-              {/* 행 2 */}
               <div style={{ padding: "20px", color: "#1A1A2E", fontSize: "15px", borderBottom: "1px solid #E0E0E0" }}>TOPIK 준비</div>
               <div style={{ padding: "20px", color: "#999", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0" }}>❌ 불가능</div>
               <div style={{ padding: "20px", color: "white", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0", backgroundColor: "#2E75B6" }}>✅ 실전 기출문제 훈련</div>
 
-              {/* 행 3 */}
               <div style={{ padding: "20px", color: "#1A1A2E", fontSize: "15px", borderBottom: "1px solid #E0E0E0" }}>오답 해설</div>
               <div style={{ padding: "20px", color: "#999", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0" }}>❌ 없음</div>
               <div style={{ padding: "20px", color: "white", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0", backgroundColor: "#2E75B6" }}>✅ AI가 즉시 설명</div>
 
-              {/* 행 4 */}
               <div style={{ padding: "20px", color: "#1A1A2E", fontSize: "15px", borderBottom: "1px solid #E0E0E0" }}>베트남어 지원</div>
               <div style={{ padding: "20px", color: "#999", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0" }}>❌ 없음</div>
               <div style={{ padding: "20px", color: "white", fontSize: "15px", textAlign: "center", borderBottom: "1px solid #E0E0E0", borderLeft: "1px solid #E0E0E0", backgroundColor: "#2E75B6" }}>✅ 전용 UI 지원</div>
 
-              {/* 행 5 */}
               <div style={{ padding: "20px", color: "#1A1A2E", fontSize: "15px" }}>작문 첨삭</div>
               <div style={{ padding: "20px", color: "#999", fontSize: "15px", textAlign: "center", borderLeft: "1px solid #E0E0E0" }}>❌ 없음</div>
               <div style={{ padding: "20px", color: "white", fontSize: "15px", textAlign: "center", borderLeft: "1px solid #E0E0E0", backgroundColor: "#2E75B6" }}>✅ AI 실시간 교정</div>
@@ -133,13 +158,15 @@ export default function Home() {
       {/* 최종 CTA */}
       <section style={{ backgroundColor: "#1F4E79", padding: "80px 40px", textAlign: "center" }}>
         <h3 style={{ fontSize: "36px", fontWeight: "bold", color: "white", marginBottom: "16px" }}>
-          지금 무료로 시작하세요
+          지금 무료로 진단하세요
         </h3>
         <p style={{ color: "#B3CDE8", fontSize: "18px", marginBottom: "40px" }}>
           베타 유저 500명 모집 중
         </p>
-        <button style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "18px 48px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "20px", cursor: "pointer" }}>
-          무료로 시작하기 →
+        <button
+          onClick={handleDiagnosticClick}
+          style={{ backgroundColor: "#F5C518", color: "#1A1A2E", padding: "18px 48px", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "20px", cursor: "pointer" }}>
+          무료로 진단하기 →
         </button>
       </section>
 

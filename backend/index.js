@@ -113,73 +113,48 @@ app.get('/scores/:user_id', async (req, res) => {
 // 진단 테스트
 // ─────────────────────────────────────────
 
-// 난이도 순서대로 정렬된 읽기 유형 9가지
-const READING_SUBTYPES_ORDERED = [
-  '빈칸 채우기 (단문)',
-  '글의 목적 파악',
-  '내용 일치 확인',
-  '유사 표현 찾기',
-  '빈칸 채우기 (장문)',
-  '신문 기사 제목 해석',
-  '문단 순서 배열',
-  '주제·중심 내용 고르기',
-  '문장 삽입 위치 찾기',
-];
+// 항목별 서브타입 매핑
+const CATEGORY_MAP = {
+  '빈칸': ['빈칸_초급', '빈칸_중급', '유사표현'],
+  '주제': ['주제찾기_광고표어', '주제찾기_신문기사', '주제찾기_글'],
+  '내용일치': ['내용일치_그림', '내용일치_글'],
+  '순서배열': ['순서배열_4문장', '순서배열_문장삽입'],
+};
 
-// 급수 판정 (9문항 기준)
-function determineLevel(correctCount, total) {
-  const ratio = correctCount / total;
-  if (ratio >= 1.0)  return 6; // 9/9
-  if (ratio >= 0.67) return 5; // 7~8/9
-  if (ratio >= 0.50) return 4; // 5~6/9
-  if (ratio >= 0.30) return 3; // 3~4/9
-  return 0;                    // 0~2/9 입문
-}
+// 약점 동률 우선순위: 빈칸 > 주제 > 내용일치 > 순서배열
+const WEAK_PRIORITY = ['빈칸', '주제', '내용일치', '순서배열'];
+// 강점 동률 우선순위: 순서배열 > 내용일치 > 주제 > 빈칸
+const STRONG_PRIORITY = ['순서배열', '내용일치', '주제', '빈칸'];
 
 // GET /diagnostic/questions
-// 읽기 9가지 유형별 1문항씩, 난이도 순 반환
 app.get('/diagnostic/questions', async (req, res) => {
   try {
+    const allSubtypes = Object.values(CATEGORY_MAP).flat();
     const questions = [];
-    for (const subtype of READING_SUBTYPES_ORDERED) {
+
+    for (const subtype of allSubtypes) {
       const { data, error } = await supabase
         .from('questions')
-        .select('id, question_subtype, question_type, question_text, option_1, option_2, option_3, option_4, level')
-        .eq('question_type', '읽기')
+        .select('id, question_type, question_subtype, question_text, option_1, option_2, option_3, option_4, level, image_url, passage, audio_url')
         .eq('question_subtype', subtype)
+        .eq('is_diagnostic_fixed', true)
         .limit(1)
         .single();
 
       if (error || !data) {
         questions.push({
           id: null,
-          question_subtype: subtype,
           question_type: '읽기',
+          question_subtype: subtype,
           question_text: null,
-          option_1: null,
-          option_2: null,
-          option_3: null,
-          option_4: null,
-          image_url: null,
-          passage: null,
-          level: null,
+          option_1: null, option_2: null, option_3: null, option_4: null,
+          level: null, image_url: null, passage: null, audio_url: null,
         });
       } else {
-        questions.push({
-          id: data.id,
-          question_subtype: data.question_subtype,
-          question_type: data.question_type,
-          question_text: data.question_text,
-          option_1: data.option_1,
-          option_2: data.option_2,
-          option_3: data.option_3,
-          option_4: data.option_4,
-          image_url: null,
-          passage: null,
-          level: data.level,
-        });
+        questions.push(data);
       }
     }
+
     res.json({ questions });
   } catch (err) {
     console.error('GET /diagnostic/questions error:', err);
@@ -188,7 +163,6 @@ app.get('/diagnostic/questions', async (req, res) => {
 });
 
 // POST /diagnostic
-// body: { user_id, answers: [{question_id, selected_answer}, ...] }
 app.post('/diagnostic', async (req, res) => {
   try {
     const { user_id, answers } = req.body;
@@ -208,41 +182,96 @@ app.post('/diagnostic', async (req, res) => {
       questionMap[q.id] = { correct_answer: q.correct_answer, question_subtype: q.question_subtype };
     });
 
-    // 유형 순서대로 정렬 후 채점
-    const sortedAnswers = [...answers].sort((a, b) => {
-      const idxA = READING_SUBTYPES_ORDERED.indexOf(questionMap[a.question_id]?.question_subtype || '');
-      const idxB = READING_SUBTYPES_ORDERED.indexOf(questionMap[b.question_id]?.question_subtype || '');
-      return idxA - idxB;
-    });
-
-    let correct_count = 0;
-    const subtype_results = [];
-    const wrong_subtypes = [];
+    // 채점
     const userAnswersToInsert = [];
+    const categoryCorrect = { '빈칸': 0, '주제': 0, '내용일치': 0, '순서배열': 0 };
+    const categoryWrong = { '빈칸': [], '주제': [], '내용일치': [], '순서배열': [] };
 
-    for (const answer of sortedAnswers) {
+    for (const answer of answers) {
       const qInfo = questionMap[answer.question_id];
       if (!qInfo) continue;
       const is_correct = answer.selected_answer === qInfo.correct_answer;
-      if (is_correct) correct_count++;
-      else wrong_subtypes.push(qInfo.question_subtype);
-      subtype_results.push({ question_subtype: qInfo.question_subtype, is_correct });
       userAnswersToInsert.push({ user_id, question_id: answer.question_id, selected_answer: answer.selected_answer, is_correct });
+
+      for (const [category, subtypes] of Object.entries(CATEGORY_MAP)) {
+        if (subtypes.includes(qInfo.question_subtype)) {
+          if (is_correct) categoryCorrect[category]++;
+          else categoryWrong[category].push(qInfo.question_subtype);
+          break;
+        }
+      }
     }
 
-    const total_count = subtype_results.length;
-    const predicted_level = determineLevel(correct_count, total_count);
-    const weak_subtypes = wrong_subtypes.slice(0, 3);
+    // 항목별 점수 계산
+    const scores = {
+      '빈칸': Math.round((categoryCorrect['빈칸'] / 3) * 100),
+      '주제': Math.round((categoryCorrect['주제'] / 3) * 100),
+      '내용일치': Math.round((categoryCorrect['내용일치'] / 2) * 100),
+      '순서배열': Math.round((categoryCorrect['순서배열'] / 2) * 100),
+    };
+
+    const totalCorrect = Object.values(categoryCorrect).reduce((a, b) => a + b, 0);
+    const totalCount = answers.length;
+
+    // perfect 케이스
+    if (totalCorrect === totalCount) {
+      const { error: insertError } = await supabase.from('user_answers').insert(userAnswersToInsert);
+      if (insertError) console.error('user_answers insert error:', insertError);
+      return res.json({ case: 'perfect', strongest: null, weakest: null, scores, sample_question: null });
+    }
+
+    // zero 케이스
+    if (totalCorrect === 0) {
+      const { error: insertError } = await supabase.from('user_answers').insert(userAnswersToInsert);
+      if (insertError) console.error('user_answers insert error:', insertError);
+      return res.json({ case: 'zero', strongest: null, weakest: null, scores, sample_question: null });
+    }
+
+    // normal 케이스 - 강점/약점 선정
+    const maxScore = Math.max(...Object.values(scores));
+    const minScore = Math.min(...Object.values(scores));
+
+    const strongest = STRONG_PRIORITY.find(c => scores[c] === maxScore);
+    const weakest = WEAK_PRIORITY.find(c => scores[c] === minScore);
+
+    // 샘플 문제 선정
+    let sample_question = null;
+    const wrongSubtypesInWeakest = categoryWrong[weakest];
+
+    if (wrongSubtypesInWeakest.length > 0) {
+      const randomSubtype = wrongSubtypesInWeakest[Math.floor(Math.random() * wrongSubtypesInWeakest.length)];
+      const { data: sampleData } = await supabase
+        .from('questions')
+        .select('id, question_type, question_subtype, question_text, option_1, option_2, option_3, option_4, correct_answer, explanation_vi, image_url, passage, level')
+        .eq('question_subtype', randomSubtype)
+        .eq('is_diagnostic_fixed', false)
+        .limit(10);
+
+      if (sampleData && sampleData.length > 0) {
+        sample_question = sampleData[Math.floor(Math.random() * sampleData.length)];
+      }
+    }
+
+    if (!sample_question) {
+      const weakestSubtypes = CATEGORY_MAP[weakest];
+      const { data: fallbackData } = await supabase
+        .from('questions')
+        .select('id, question_type, question_subtype, question_text, option_1, option_2, option_3, option_4, correct_answer, explanation_vi, image_url, passage, level')
+        .in('question_subtype', weakestSubtypes)
+        .eq('is_diagnostic_fixed', false)
+        .limit(10);
+
+      if (fallbackData && fallbackData.length > 0) {
+        sample_question = fallbackData[Math.floor(Math.random() * fallbackData.length)];
+      }
+    }
 
     // user_answers 저장
     const { error: insertError } = await supabase.from('user_answers').insert(userAnswersToInsert);
     if (insertError) console.error('user_answers insert error:', insertError);
 
-    // users 레벨 업데이트
-    const { error: updateError } = await supabase.from('users').update({ level: predicted_level }).eq('id', user_id);
-    if (updateError) console.error('users level update error:', updateError);
+    res.json({ case: 'normal', strongest, weakest, scores, sample_question });
 
-    res.json({ user_id, predicted_level, correct_count, total_count, subtype_results, weak_subtypes });
   } catch (err) {
     console.error('POST /diagnostic error:', err);
     res.status(500).json({ error: '서버 오류가 발생했습니다.' });

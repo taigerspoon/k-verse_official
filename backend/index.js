@@ -217,14 +217,14 @@ app.post('/diagnostic', async (req, res) => {
     if (totalCorrect === totalCount) {
       const { error: insertError } = await supabase.from('user_answers').insert(userAnswersToInsert);
       if (insertError) console.error('user_answers insert error:', insertError);
-      return res.json({ case: 'perfect', strongest: null, weakest: null, scores, sample_question: null });
+      return res.json({ case: 'perfect', correct_count: 10, strongest: null, weakest: null, scores, sample_question: null });
     }
 
     // zero 케이스
     if (totalCorrect === 0) {
       const { error: insertError } = await supabase.from('user_answers').insert(userAnswersToInsert);
       if (insertError) console.error('user_answers insert error:', insertError);
-      return res.json({ case: 'zero', strongest: null, weakest: null, scores, sample_question: null });
+      return res.json({ case: 'zero', correct_count: 0, strongest: null, weakest: null, scores, sample_question: null });
     }
 
     // normal 케이스 - 강점/약점 선정
@@ -270,7 +270,7 @@ app.post('/diagnostic', async (req, res) => {
     const { error: insertError } = await supabase.from('user_answers').insert(userAnswersToInsert);
     if (insertError) console.error('user_answers insert error:', insertError);
 
-    res.json({ case: 'normal', strongest, weakest, scores, sample_question });
+   res.json({ case: 'normal', correct_count: totalCorrect, strongest, weakest, scores, sample_question });
 
   } catch (err) {
     console.error('POST /diagnostic error:', err);

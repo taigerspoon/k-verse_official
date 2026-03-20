@@ -102,14 +102,9 @@ export default function DiagnosticResultPage() {
         }
         setResult(parsed);
       } else {
-        setResult({
-          case: 'normal',
-          strongest: '주제',
-          weakest: '빈칸',
-          correct_count: 6,
-          scores: { 빈칸: 33, 주제: 100, 내용일치: 50, 순서배열: 67 },
-          sample_question: null,
-        });
+        // 데이터 없으면 진단 페이지로 리다이렉트
+        router.push('/diagnostic');
+        return;
       }
     } catch {
       setResult({ case: 'normal', strongest: null, weakest: null, correct_count: 0, scores: { 빈칸: 0, 주제: 0, 내용일치: 0, 순서배열: 0 }, sample_question: null });

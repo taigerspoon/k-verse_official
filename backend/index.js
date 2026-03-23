@@ -4,7 +4,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 const client = new Anthropic();
 
 // Supabase 연결

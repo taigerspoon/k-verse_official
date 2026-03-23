@@ -262,18 +262,37 @@ export default function DiagnosticResultPage() {
 
         {/* ④ CTA 버튼 */}
         <div style={{ marginTop: 28 }}>
-          {result.case === 'normal' && result.weakest && (
-            <GoldenButton onClick={() => router.push(`/trial?type=${result.weakest}`)}>
-              {EXPLANATIONS[result.weakest]?.cta ?? '훈련 시작하기'} →
-            </GoldenButton>
-          )}
+{result.case === 'normal' && result.weakest && (
+  <>
+    <GoldenButton onClick={() => router.push('/coming-soon')}>
+      {EXPLANATIONS[result.weakest]?.cta ?? '훈련 시작하기'} →
+    </GoldenButton>
+    <button
+      onClick={() => router.push('/coming-soon')}
+      style={{
+        width: '100%',
+        padding: '14px 24px',
+        background: 'transparent',
+        color: '#1F4E79',
+        border: '2px solid #1F4E79',
+        borderRadius: 12,
+        fontSize: 15,
+        fontWeight: 600,
+        cursor: 'pointer',
+        marginTop: 12,
+      }}
+    >
+      틀린 문제 해설 받기 →
+    </button>
+  </>
+)}
           {result.case === 'perfect' && (
-            <GoldenButton onClick={() => router.push('/trial?type=perfect')}>
+            <GoldenButton onClick={() => router.push('/coming-soon')}>
               실전형 정밀 진단 시작하기 →
             </GoldenButton>
           )}
           {result.case === 'zero' && (
-            <GoldenButton onClick={() => router.push('/trial?type=zero')}>
+            <GoldenButton onClick={() => router.push('/coming-soon')}>
               기초부터 시작하기 →
             </GoldenButton>
           )}

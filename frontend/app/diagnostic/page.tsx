@@ -28,9 +28,7 @@ type Answer = {
 export default function DiagnosticPage() {
   const router = useRouter();
 
-  // 화면 단계: "start" | "quiz" | "submitting"
   const [stage, setStage] = useState<"start" | "quiz" | "submitting">("start");
-
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -40,7 +38,6 @@ export default function DiagnosticPage() {
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // 로그인된 유저 ID 가져오기
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -49,7 +46,6 @@ export default function DiagnosticPage() {
     getUser();
   }, []);
 
-  // 진단 시작 버튼 클릭 → API 호출
   const handleStart = async () => {
     setLoading(true);
     setError(null);
@@ -66,14 +62,12 @@ export default function DiagnosticPage() {
     }
   };
 
-  // 선택지 클릭
   const handleSelect = (optionNum: number) => {
     if (selected !== null) return;
     setSelected(optionNum);
     setShowNext(true);
   };
 
-  // 다음 문제 또는 결과 제출
   const handleNext = async () => {
     if (selected === null) return;
 
@@ -81,7 +75,6 @@ export default function DiagnosticPage() {
     const newAnswers = [...answers, { question_id: currentQuestion.id, selected_answer: selected }];
     setAnswers(newAnswers);
 
-    // 마지막 문제면 결과 제출
     if (currentIndex + 1 >= questions.length) {
       setStage("submitting");
       try {
@@ -101,13 +94,11 @@ export default function DiagnosticPage() {
       return;
     }
 
-    // 다음 문제로
     setCurrentIndex((prev) => prev + 1);
     setSelected(null);
     setShowNext(false);
   };
 
-  // ─── 시작 화면 ───────────────────────────────────────────
   if (stage === "start") {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -143,7 +134,6 @@ export default function DiagnosticPage() {
     );
   }
 
-  // ─── 제출 중 화면 ─────────────────────────────────────────
   if (stage === "submitting") {
     return (
       <main style={{ backgroundColor: "#F8FAFC", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Arial, sans-serif" }}>
@@ -156,7 +146,6 @@ export default function DiagnosticPage() {
     );
   }
 
-  // ─── 퀴즈 화면 ───────────────────────────────────────────
   if (questions.length === 0) return null;
 
   const currentQuestion = questions[currentIndex];
@@ -171,9 +160,6 @@ export default function DiagnosticPage() {
         {/* 상단 진행 표시 */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
           <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#1F4E79" }}>K-Verse 레벨 진단</h1>
-          <span style={{ backgroundColor: "#F0F4FF", color: "#1F4E79", padding: "4px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: "bold" }}>
-            {currentQuestion.question_subtype}
-          </span>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
@@ -197,9 +183,9 @@ export default function DiagnosticPage() {
           {/* 지문 (passage) */}
           {currentQuestion.passage && (
             <div style={{ backgroundColor: "#F8FAFC", borderRadius: "8px", padding: "20px", marginBottom: "24px", borderLeft: "4px solid #2E75B6" }}>
-              <p style={{ color: "#444", fontSize: "15px", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
-                {currentQuestion.passage}
-              </p>
+              <p style={{ color: "#444", fontSize: "15px", lineHeight: 1.8 }}
+                dangerouslySetInnerHTML={{ __html: currentQuestion.passage?.replace(/\n/g, '<br>') ?? '' }}
+              />
             </div>
           )}
 
@@ -212,9 +198,9 @@ export default function DiagnosticPage() {
           )}
 
           {/* 문제 텍스트 */}
-          <p style={{ color: "#1A1A2E", lineHeight: 1.7, marginBottom: "28px", fontWeight: "500", fontSize: "16px" }}>
-            {currentQuestion.question_text}
-          </p>
+          <p style={{ color: "#1A1A2E", lineHeight: 1.7, marginBottom: "28px", fontWeight: "500", fontSize: "16px" }}
+            dangerouslySetInnerHTML={{ __html: currentQuestion.question_text }}
+          />
 
           {/* 선택지 */}
           {options.map((option, i) => {
@@ -257,13 +243,16 @@ export default function DiagnosticPage() {
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(-1px)";
                 }}
                 onMouseLeave={(e) => {
-                  if (selected !== null) return;
+                  if (selected !== null) {
+                    (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                    return;
+                  }
                   (e.currentTarget as HTMLDivElement).style.backgroundColor = "white";
                   (e.currentTarget as HTMLDivElement).style.borderColor = "#E8E8E8";
                   (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
                 }}
               >
-                <span>{`${["①", "②", "③", "④"][i]} ${option}`}</span>
+                <span dangerouslySetInnerHTML={{ __html: `${["①", "②", "③", "④"][i]} ${option?.replace(/\n/g, '<br>') ?? ''}` }} />
                 {isSelected && <span style={{ fontSize: "16px" }}>✔</span>}
               </div>
             );

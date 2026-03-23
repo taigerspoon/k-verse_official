@@ -27,5 +27,6 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
+  const redirectTo = requestUrl.searchParams.get('next') ?? '/diagnostic'
+  return NextResponse.redirect(new URL(redirectTo, requestUrl.origin))
 }

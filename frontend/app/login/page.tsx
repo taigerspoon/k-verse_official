@@ -38,7 +38,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/diagnostic`,
       },
     });
 
@@ -111,27 +111,7 @@ export default function LoginPage() {
           {loading ? "로그인 중..." : "Google로 시작하기"}
         </button>
 
-        {/* TOPIK 집중반 버튼 */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          style={{
-            width: "100%",
-            backgroundColor: "#F5C518",
-            color: "#1A1A2E",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            border: "none",
-            fontWeight: "bold",
-            fontSize: "16px",
-            cursor: loading ? "not-allowed" : "pointer",
-            marginBottom: "24px",
-            opacity: loading ? 0.7 : 1,
-          }}
-        >
-          🎯 TOPIK 집중반 시작하기
-        </button>
-
+       
         {/* 이용약관 */}
         <p style={{ color: "#999", textAlign: "center", fontSize: "13px", lineHeight: 1.6 }}>
           계속하면 <span style={{ color: "#2E75B6", cursor: "pointer" }}>이용약관</span> 및{" "}

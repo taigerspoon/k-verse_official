@@ -63,7 +63,6 @@ export default function DiagnosticPage() {
   };
 
   const handleSelect = (optionNum: number) => {
-    if (selected !== null) return;
     setSelected(optionNum);
     setShowNext(true);
   };
@@ -179,10 +178,15 @@ export default function DiagnosticPage() {
 
         {/* 문제 카드 */}
         <div style={{ backgroundColor: "white", borderRadius: "12px", padding: "32px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginBottom: "16px" }}>
+        
+          {/* 문제 텍스트 */}
+          <p style={{ color: "#1A1A2E", lineHeight: 1.7, marginBottom: "28px", fontWeight: "500", fontSize: "16px" }}
+            dangerouslySetInnerHTML={{ __html: currentQuestion.question_text?.replace(/\n/g, '<br>') ?? '' }}
+          />
 
           {/* 지문 (passage) */}
           {currentQuestion.passage && (
-            <div style={{ backgroundColor: "#F8FAFC", borderRadius: "8px", padding: "20px", marginBottom: "24px", borderLeft: "4px solid #2E75B6" }}>
+            <div style={{ backgroundColor: "#F8FAFC", borderRadius: "8px", padding: "20px", marginBottom: "24px", border: "1.5px solid #1F4E79" }}>
               <p style={{ color: "#444", fontSize: "15px", lineHeight: 1.8 }}
                 dangerouslySetInnerHTML={{ __html: currentQuestion.passage?.replace(/\n/g, '<br>') ?? '' }}
               />
@@ -196,11 +200,6 @@ export default function DiagnosticPage() {
               <img src={currentQuestion.image_url} alt="문제 이미지" style={{ maxWidth: "100%", borderRadius: "8px" }} />
             </div>
           )}
-
-          {/* 문제 텍스트 */}
-          <p style={{ color: "#1A1A2E", lineHeight: 1.7, marginBottom: "28px", fontWeight: "500", fontSize: "16px" }}
-            dangerouslySetInnerHTML={{ __html: currentQuestion.question_text }}
-          />
 
           {/* 선택지 */}
           {options.map((option, i) => {

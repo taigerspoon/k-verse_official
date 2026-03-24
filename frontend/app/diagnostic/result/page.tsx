@@ -265,7 +265,7 @@ export default function DiagnosticResultPage() {
 {result.case === 'normal' && result.weakest && (
   <>
     <GoldenButton onClick={() => router.push('/coming-soon')}>
-      {EXPLANATIONS[result.weakest]?.cta ?? '훈련 시작하기'} →
+      약점 훈련 시작하기 →
     </GoldenButton>
     <button
       onClick={() => router.push('/coming-soon')}
